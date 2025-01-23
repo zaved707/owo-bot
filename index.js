@@ -5,7 +5,8 @@ const client = new Client();
 
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
+    terminal: false
 });
 
 client.on('ready', async () => {
@@ -13,9 +14,10 @@ client.on('ready', async () => {
 
     const channelId = '1312765856945668217'; // Replace with your channel ID
     const channel = await client.channels.fetch(channelId);
-    const messagesToSend = ['owo hunt','owo battle']; // Predefined list of messages
-    const maxCycles = 100; // Predefined number of times the messages should be sent
+    const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
+    const maxCycles = 26; // Predefined number of times the messages should be sent
     const terminationText = "a​re y​ou a​ r​eal huma​n?"; // Predefined termination text
+    const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
 
     // Variable to define how many times the loop runs before sending random commands
     const randomCommandInterval = 40;
@@ -26,6 +28,18 @@ client.on('ready', async () => {
     let cycleCount = 0;
     let messageIndex = 0;
     let isRunning = true;
+
+    const userId = '836264845669040177'; // Replace with the user ID
+    const user = await client.users.fetch(userId);
+
+    async function sendMessageToUser(message) {
+        try {
+            await user.send(message);
+            console.log(`Sent "${message}" to ${user.tag}`);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    }
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -43,6 +57,7 @@ client.on('ready', async () => {
             if (lastMessage && lastMessage.content.includes(terminationText)) {
                 console.log(`Last message contains "${terminationText}". Stopping the bot.`);
                 isRunning = false;
+                await sendMessageToUser(botTerminatedMessage);
                 return;
             }
             await channel.send(command);
@@ -57,6 +72,7 @@ client.on('ready', async () => {
 
         if (cycleCount >= maxCycles) {
             console.log('Reached maximum cycle count. Stopping the bot.');
+            await sendMessageToUser(botTerminatedMessage);
             return;
         }
 
@@ -66,6 +82,7 @@ client.on('ready', async () => {
             if (lastMessage && lastMessage.content.includes(terminationText)) {
                 console.log(`Last message contains "${terminationText}". Stopping the bot.`);
                 isRunning = false;
+                await sendMessageToUser(botTerminatedMessage);
                 return;
             }
 
