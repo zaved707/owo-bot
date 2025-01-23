@@ -13,12 +13,44 @@ client.on('ready', async () => {
 
     const channelId = '1312765856945668217'; // Replace with your channel ID
     const channel = await client.channels.fetch(channelId);
-    const messagesToSend = ['owo hunt']; // Predefined list of messages
-    const maxCycles = 40; // Predefined number of times the messages should be sent
+    const messagesToSend = ['owo hunt','owo battle']; // Predefined list of messages
+    const maxCycles = 100; // Predefined number of times the messages should be sent
     const terminationText = "a​re y​ou a​ r​eal huma​n?"; // Predefined termination text
+
+    // Variable to define how many times the loop runs before sending random commands
+    const randomCommandInterval = 40;
+
+    // List of random commands to be executed after every randomCommandInterval revolutions
+    const randomCommands = ['owo inv', 'owo ah', 'owo help', 'owo cash'];
+
     let cycleCount = 0;
     let messageIndex = 0;
     let isRunning = true;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    async function executeRandomCommands() {
+        shuffleArray(randomCommands);
+        const commandsToExecute = randomCommands.slice(0, 2); // Select only 2 random commands
+        for (const command of commandsToExecute) {
+            const messages = await channel.messages.fetch({ limit: 1 });
+            const lastMessage = messages.first();
+            if (lastMessage && lastMessage.content.includes(terminationText)) {
+                console.log(`Last message contains "${terminationText}". Stopping the bot.`);
+                isRunning = false;
+                return;
+            }
+            await channel.send(command);
+            console.log(`Executed random command: ${command}`);
+            const randomDelay = Math.floor(Math.random() * (40000 - 30000 + 1)) + 30000;
+            await new Promise(resolve => setTimeout(resolve, randomDelay));
+        }
+    }
 
     async function checkAndSendMessage() {
         if (!isRunning) return;
@@ -33,6 +65,7 @@ client.on('ready', async () => {
             const lastMessage = messages.first();
             if (lastMessage && lastMessage.content.includes(terminationText)) {
                 console.log(`Last message contains "${terminationText}". Stopping the bot.`);
+                isRunning = false;
                 return;
             }
 
@@ -42,8 +75,13 @@ client.on('ready', async () => {
             console.log(`Cycle count: ${cycleCount}`);
             messageIndex = (messageIndex + 1) % messagesToSend.length;
 
+            // Execute random commands after every randomCommandInterval revolutions
+            if (cycleCount % randomCommandInterval === 0) {
+                await executeRandomCommands();
+            }
+
             // Wait for a random time between 11-15 seconds before sending the next message
-            const randomDelay = Math.floor(Math.random() * (15000 - 11000 + 1)) + 10000;
+            const randomDelay = Math.floor(Math.random() * (8000 - 6000 + 1)) + 6000;
             setTimeout(checkAndSendMessage, randomDelay);
         } catch (error) {
             console.error('Error fetching messages or sending message:', error);
