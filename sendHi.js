@@ -15,21 +15,21 @@ client.on('ready', async () => {
     const userId = '836264845669040177'; // Replace with the user ID
     const user = await client.users.fetch(userId);
 
-    async function sendHi() {
+    async function sendMessageToUser(message) {
         try {
-            await user.send('hi');
-            console.log(`Sent "hi" to ${user.tag}`);
+            await user.send(message);
+            console.log(`Sent "${message}" to ${user.tag}`);
         } catch (error) {
             console.error('Error sending message:', error);
         }
     }
 
-    await sendHi();
+    await sendMessageToUser('hi');
 
     rl.on('line', async (input) => {
         if (input.trim().toLowerCase() === 'r') {
             console.log('Sending "hi" again.');
-            await sendHi();
+            await sendMessageToUser('hi');
         }
     });
 });

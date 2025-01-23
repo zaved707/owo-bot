@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Client } = require('discord.js-selfbot-v13');
 const readline = require('readline');
+
 const client = new Client();
 
 const rl = readline.createInterface({
@@ -41,6 +42,11 @@ client.on('ready', async () => {
         }
     }
 
+    
+    async function handleBotTermination() {
+        await sendMessageToUser(botTerminatedMessage);
+    }
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -57,7 +63,7 @@ client.on('ready', async () => {
             if (lastMessage && lastMessage.content.includes(terminationText)) {
                 console.log(`Last message contains "${terminationText}". Stopping the bot.`);
                 isRunning = false;
-                await sendMessageToUser(botTerminatedMessage);
+                await handleBotTermination();
                 return;
             }
             await channel.send(command);
@@ -72,7 +78,7 @@ client.on('ready', async () => {
 
         if (cycleCount >= maxCycles) {
             console.log('Reached maximum cycle count. Stopping the bot.');
-            await sendMessageToUser(botTerminatedMessage);
+            await handleBotTermination();
             return;
         }
 
@@ -82,7 +88,7 @@ client.on('ready', async () => {
             if (lastMessage && lastMessage.content.includes(terminationText)) {
                 console.log(`Last message contains "${terminationText}". Stopping the bot.`);
                 isRunning = false;
-                await sendMessageToUser(botTerminatedMessage);
+                await handleBotTermination();
                 return;
             }
 
