@@ -10,13 +10,18 @@ const rl = readline.createInterface({
     terminal: false
 });
 
+let maxCycles = 34; // Predefined number of times the messages should be sent
+let cycleCount = 0;
+let messageIndex = 0;
+let isRunning = true;
+let currentTimeout;
+
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
     const channelId = '1312765856945668217'; // Replace with your channel ID
     const channel = await client.channels.fetch(channelId);
     const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
-    const maxCycles = 1; // Predefined number of times the messages should be sent
     const terminationTexts = ["a​re y​ou a​ r​eal huma​n?", "stop", "Ple​ase complet​e y​our captch​a"]; // Define multiple termination texts
     const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
     const botCompletedMessage = 'bot completed all messages'; // Define the 'bot completed' text once
@@ -26,10 +31,6 @@ client.on('ready', async () => {
 
     // List of random commands to be executed after every randomCommandInterval revolutions
     const randomCommands = ['owo inv', 'owo ah', 'owo help', 'owo cash'];
-
-    let cycleCount = 0;
-    let messageIndex = 0;
-    let isRunning = true;
 
     const userId = '836264845669040177'; // Replace with the user ID
     const user = await client.users.fetch(userId);
@@ -59,6 +60,7 @@ client.on('ready', async () => {
 
     async function handleBotCompletion() {
         await sendMessageToUser(botCompletedMessage);
+        isRunning = false; // Change isRunning to false after the bot finishes
     }
 
     function shuffleArray(array) {
@@ -123,23 +125,32 @@ client.on('ready', async () => {
 
             // Wait for a random time between 11-15 seconds before sending the next message
             const randomDelay = Math.floor(Math.random() * (8000 - 6000 + 1)) + 6000;
-            setTimeout(checkAndSendMessage, randomDelay);
+            currentTimeout = setTimeout(checkAndSendMessage, randomDelay);
         } catch (error) {
             console.error('Error fetching messages or sending message:', error);
         }
     }
 
     rl.on('line', (input) => {
-        if (input.trim().toLowerCase() === 'r') {
-            console.log('Restarting the cycle.');
+        const newMaxCycles = parseInt(input.trim(), 10);
+        if (!isNaN(newMaxCycles)) {
+            console.log(`Updating maxCycles to ${newMaxCycles}.`);
+            console.log(isRunning);
+            maxCycles = newMaxCycles;
             cycleCount = 0;
             messageIndex = 0;
-            isRunning = true;
-            checkAndSendMessage();
+            if (!isRunning) {
+                isRunning = true;
+                checkAndSendMessage();
+                console.log('Bot restarted.');
+            }
+            
         }
     });
 
     checkAndSendMessage();
 });
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN).catch(error => {
+    console.error('Error logging in:', error);
+});
