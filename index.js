@@ -17,7 +17,7 @@ client.on('ready', async () => {
     const channel = await client.channels.fetch(channelId);
     const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
     const maxCycles = 26; // Predefined number of times the messages should be sent
-    const terminationText = "a​re y​ou a​ r​eal huma​n?"; // Predefined termination text
+    const terminationTexts = ["a​re y​ou a​ r​eal huma​n?", "stop", "Ple​ase complet​e y​our captch​a"]; // Define multiple termination texts
     const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
 
     // Variable to define how many times the loop runs before sending random commands
@@ -42,9 +42,18 @@ client.on('ready', async () => {
         }
     }
 
-    
     async function handleBotTermination() {
-        await sendMessageToUser(botTerminatedMessage);
+        const endTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+
+        async function sendMessagesPeriodically() {
+            if (Date.now() >= endTime) return;
+
+            await sendMessageToUser(botTerminatedMessage);
+            const randomDelay = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000;
+            setTimeout(sendMessagesPeriodically, randomDelay);
+        }
+
+        sendMessagesPeriodically();
     }
 
     function shuffleArray(array) {
@@ -54,14 +63,18 @@ client.on('ready', async () => {
         }
     }
 
+    function containsTerminationText(message) {
+        return terminationTexts.some(text => message.includes(text));
+    }
+
     async function executeRandomCommands() {
         shuffleArray(randomCommands);
         const commandsToExecute = randomCommands.slice(0, 2); // Select only 2 random commands
         for (const command of commandsToExecute) {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage && lastMessage.content.includes(terminationText)) {
-                console.log(`Last message contains "${terminationText}". Stopping the bot.`);
+            if (lastMessage && containsTerminationText(lastMessage.content)) {
+                console.log(`Last message contains termination text. Stopping the bot.`);
                 isRunning = false;
                 await handleBotTermination();
                 return;
@@ -85,8 +98,8 @@ client.on('ready', async () => {
         try {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage && lastMessage.content.includes(terminationText)) {
-                console.log(`Last message contains "${terminationText}". Stopping the bot.`);
+            if (lastMessage && containsTerminationText(lastMessage.content)) {
+                console.log(`Last message contains termination text. Stopping the bot.`);
                 isRunning = false;
                 await handleBotTermination();
                 return;
