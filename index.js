@@ -16,9 +16,10 @@ client.on('ready', async () => {
     const channelId = '1312765856945668217'; // Replace with your channel ID
     const channel = await client.channels.fetch(channelId);
     const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
-    const maxCycles = 26; // Predefined number of times the messages should be sent
+    const maxCycles = 1; // Predefined number of times the messages should be sent
     const terminationTexts = ["a​re y​ou a​ r​eal huma​n?", "stop", "Ple​ase complet​e y​our captch​a"]; // Define multiple termination texts
     const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
+    const botCompletedMessage = 'bot completed all messages'; // Define the 'bot completed' text once
 
     // Variable to define how many times the loop runs before sending random commands
     const randomCommandInterval = 40;
@@ -56,6 +57,10 @@ client.on('ready', async () => {
         sendMessagesPeriodically();
     }
 
+    async function handleBotCompletion() {
+        await sendMessageToUser(botCompletedMessage);
+    }
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -91,7 +96,7 @@ client.on('ready', async () => {
 
         if (cycleCount >= maxCycles) {
             console.log('Reached maximum cycle count. Stopping the bot.');
-            await handleBotTermination();
+            await handleBotCompletion();
             return;
         }
 
