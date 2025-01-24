@@ -16,11 +16,10 @@ let messageIndex = 0;
 let isRunning = true;
 let currentTimeout;
 
-
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
-    const channelId = '1312765856945668217'; // Replace with your channel ID
+    const channelId = process.env.CHANNEL_ID; // Take channel ID from .env file
     const channel = await client.channels.fetch(channelId);
     const messagesToSend = ['hi', 'hello']; // Predefined list of messages
     const terminationTexts = [
@@ -52,7 +51,7 @@ client.on('ready', async () => {
         const endTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
 
         async function sendMessagesPeriodically() {
-            if (Date.now() >= endTime) return;
+            if (isRunning || Date.now() >= endTime) return;
 
             await sendMessageToUser(botTerminatedMessage);
             const randomDelay = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000;
@@ -87,7 +86,7 @@ client.on('ready', async () => {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
             if (lastMessage) {
-                console.log(`Last message: ${lastMessage.content}`);
+                //console.log(`Last message: ${lastMessage.content}`);
                 if (containsTerminationText(lastMessage.content)) {
                     console.log(`Last message contains termination text. Stopping the bot.`);
                     isRunning = false;
@@ -116,7 +115,7 @@ client.on('ready', async () => {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
             if (lastMessage) {
-                console.log(`Last message: ${lastMessage.content}`);
+                //console.log(`Last message: ${lastMessage.content}`);
                 if (containsTerminationText(lastMessage.content)) {
                     console.log(`Last message contains termination text. Stopping the bot.`);
                     isRunning = false;
@@ -162,7 +161,7 @@ client.on('ready', async () => {
             if (terminationTexts.some(text => lowerCaseInput.includes(text.toLowerCase()))) {
                 console.log(`Input contains termination text. Stopping the bot.`);
                 isRunning = false;
-                handleBotTermination();
+                handleBotCompletion();
             }
         }
     });
