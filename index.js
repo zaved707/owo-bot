@@ -21,8 +21,11 @@ client.on('ready', async () => {
 
     const channelId = '1312765856945668217'; // Replace with your channel ID
     const channel = await client.channels.fetch(channelId);
-    const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
-    const terminationTexts = ["a​re y​ou a​ r​eal huma​n?", "stop", "Ple​ase complet​e y​our captch​a"]; // Define multiple termination texts
+    const messagesToSend = ['hi', 'hello']; // Predefined list of messages
+    const terminationTexts = [
+        "stop",
+        "are you a real human? ", "captcha"
+    ]; // Define multiple termination texts
     const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
     const botCompletedMessage = 'bot completed all messages'; // Define the 'bot completed' text once
 
@@ -71,7 +74,7 @@ client.on('ready', async () => {
     }
 
     function containsTerminationText(message) {
-        return terminationTexts.some(text => message.includes(text));
+        return terminationTexts.some(text => message.toLowerCase().includes(text.toLowerCase()));
     }
 
     async function executeRandomCommands() {
@@ -80,12 +83,16 @@ client.on('ready', async () => {
         for (const command of commandsToExecute) {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage && containsTerminationText(lastMessage.content)) {
-                console.log(`Last message contains termination text. Stopping the bot.`);
-                isRunning = false;
-                await handleBotTermination();
-                return;
+            if (lastMessage) {
+                console.log(`Last message: ${lastMessage.content}`);
+                if (containsTerminationText(lastMessage.content)) {
+                    console.log(`Last message contains termination text. Stopping the bot.`);
+                    isRunning = false;
+                    await handleBotTermination();
+                    return;
+                }
             }
+
             await channel.send(command);
             console.log(`Executed random command: ${command}`);
             const randomDelay = Math.floor(Math.random() * (40000 - 30000 + 1)) + 30000;
@@ -105,11 +112,14 @@ client.on('ready', async () => {
         try {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage && containsTerminationText(lastMessage.content)) {
-                console.log(`Last message contains termination text. Stopping the bot.`);
-                isRunning = false;
-                await handleBotTermination();
-                return;
+            if (lastMessage) {
+                console.log(`Last message: ${lastMessage.content}`);
+                if (containsTerminationText(lastMessage.content)) {
+                    console.log(`Last message contains termination text. Stopping the bot.`);
+                    isRunning = false;
+                    await handleBotTermination();
+                    return;
+                }
             }
 
             await channel.send(messagesToSend[messageIndex]);
@@ -144,7 +154,13 @@ client.on('ready', async () => {
                 checkAndSendMessage();
                 console.log('Bot restarted.');
             }
-            
+        } else {
+            const lowerCaseInput = input.trim().toLowerCase();
+            if (terminationTexts.some(text => lowerCaseInput.includes(text.toLowerCase()))) {
+                console.log(`Input contains termination text. Stopping the bot.`);
+                isRunning = false;
+                handleBotTermination();
+            }
         }
     });
 
