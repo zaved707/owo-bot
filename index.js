@@ -124,18 +124,24 @@ client.on('ready', async () => {
         }
     }
 
-    rl.on('line', (input) => {
+    rl.on('line', async (input) => {
         const newMaxCycles = parseInt(input.trim(), 10);
         if (!isNaN(newMaxCycles)) {
             console.log(`Updating maxCycles to ${newMaxCycles}.`);
             maxCycles = newMaxCycles;
             cycleCount = 0;
             messageIndex = 0;
-            if (!isRunning) {
+            if (!isRunning) { //this will be true if the bot has been stopped via termination
                 isRunning = true;
-                checkAndSendMessage();
+                channel.send("safety");
+                console.log('before2sec')
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log('after2sec')
+                console.log('safety message sent');
                 console.log('Bot restarted.');
-            }
+                checkAndSendMessage();
+            } 
+                
         } else if (terminationTexts.some(text => input.trim().toLowerCase().includes(text.toLowerCase()))) {
             console.log(`Input contains termination text. Stopping the bot.`);
             isRunning = false;
