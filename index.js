@@ -16,6 +16,7 @@ let messageIndex = 0;
 let isRunning = true;
 let currentTimeout;
 
+
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
@@ -23,8 +24,8 @@ client.on('ready', async () => {
     const channel = await client.channels.fetch(channelId);
     const messagesToSend = ['hi', 'hello']; // Predefined list of messages
     const terminationTexts = [
-        "stop",
-        "are you a real human? ", "captcha"
+        "stop","captcha",
+        "real human",
     ]; // Define multiple termination texts
     const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
     const botCompletedMessage = 'bot completed all messages'; // Define the 'bot completed' text once
@@ -74,7 +75,9 @@ client.on('ready', async () => {
     }
 
     function containsTerminationText(message) {
-        return terminationTexts.some(text => message.toLowerCase().includes(text.toLowerCase()));
+        const cleanedMessage = message.replace(/\u200B/g, ''); // Remove zero-width space characters
+        console.log(`Cleaned message: ${cleanedMessage}`);
+        return terminationTexts.some(text => cleanedMessage.toLowerCase().includes(text.toLowerCase()));
     }
 
     async function executeRandomCommands() {
