@@ -3,39 +3,30 @@ const { Client } = require('discord.js-selfbot-v13');
 const readline = require('readline');
 
 const client = new Client();
-
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     terminal: false
 });
 
-let maxCycles = 34; // Predefined number of times the messages should be sent
+let maxCycles = 34;
 let cycleCount = 0;
 let messageIndex = 0;
 let isRunning = true;
 let currentTimeout;
 
+const channelId = process.env.CHANNEL_ID;
+const messagesToSend = ['owo hunt', 'owo battle'];
+const terminationTexts = ["stop", "captcha", "real human"];
+const botTerminatedMessage = 'bot terminated';
+const botCompletedMessage = 'bot completed all messages';
+const randomCommandInterval = 40;
+const randomCommands = ['owo inv', 'owo ah', 'owo cash', 'owo lvl', 'owo zoo'];
+const userId = '836264845669040177';
+
 client.on('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
-
-    const channelId = process.env.CHANNEL_ID; // Take channel ID from .env file
     const channel = await client.channels.fetch(channelId);
-    const messagesToSend = ['hi', 'hello']; // Predefined list of messages
-    const terminationTexts = [
-        "stop","captcha",
-        "real human",
-    ]; // Define multiple termination texts
-    const botTerminatedMessage = 'bot terminated'; // Define the 'bot terminated' text once
-    const botCompletedMessage = 'bot completed all messages'; // Define the 'bot completed' text once
-
-    // Variable to define how many times the loop runs before sending random commands
-    const randomCommandInterval = 40;
-
-    // List of random commands to be executed after every randomCommandInterval revolutions
-    const randomCommands = ['owo inv', 'owo ah', 'owo cash', 'owo lvl', 'owo zoo'];
-
-    const userId = '836264845669040177'; // Replace with the user ID
     const user = await client.users.fetch(userId);
 
     async function sendMessageToUser(message) {
@@ -54,7 +45,7 @@ client.on('ready', async () => {
             if (isRunning || Date.now() >= endTime) return;
 
             await sendMessageToUser(botTerminatedMessage);
-            const randomDelay = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000;
+            const randomDelay = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000; // 10-20 seconds
             setTimeout(sendMessagesPeriodically, randomDelay);
         }
 
@@ -85,45 +76,35 @@ client.on('ready', async () => {
         for (const command of commandsToExecute) {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage) {
-                //console.log(`Last message: ${lastMessage.content}`);
-                if (containsTerminationText(lastMessage.content)) {
-                    console.log(`Last message contains termination text. Stopping the bot.`);
-                    isRunning = false;
-                    await handleBotTermination();
-                    return;
-                }
+            if (lastMessage && containsTerminationText(lastMessage.content)) {
+                console.log(`Last message contains termination text. Stopping the bot.`);
+                isRunning = false;
+                await handleBotTermination();
+                return;
             }
-
             await channel.send(command);
             console.log(`Executed random command: ${command}`);
-            const randomDelay = Math.floor(Math.random() * (40000 - 30000 + 1)) + 30000;
+            const randomDelay = Math.floor(Math.random() * (40000 - 30000 + 1)) + 30000; // 30-40 seconds
             await new Promise(resolve => setTimeout(resolve, randomDelay));
         }
     }
 
     async function checkAndSendMessage() {
         if (!isRunning) return;
-
         if (cycleCount >= maxCycles) {
             console.log('Reached maximum cycle count. Stopping the bot.');
             await handleBotCompletion();
             return;
         }
-
         try {
             const messages = await channel.messages.fetch({ limit: 1 });
             const lastMessage = messages.first();
-            if (lastMessage) {
-                //console.log(`Last message: ${lastMessage.content}`);
-                if (containsTerminationText(lastMessage.content)) {
-                    console.log(`Last message contains termination text. Stopping the bot.`);
-                    isRunning = false;
-                    await handleBotTermination();
-                    return;
-                }
+            if (lastMessage && containsTerminationText(lastMessage.content)) {
+                console.log(`Last message contains termination text. Stopping the bot.`);
+                isRunning = false;
+                await handleBotTermination();
+                return;
             }
-
             await channel.send(messagesToSend[messageIndex]);
             console.log(`Sent message: ${messagesToSend[messageIndex]}`);
             cycleCount++;
@@ -136,7 +117,7 @@ client.on('ready', async () => {
             }
 
             // Wait for a random time between 11-15 seconds before sending the next message
-            const randomDelay = Math.floor(Math.random() * (8000 - 6000 + 1)) + 6000;
+            const randomDelay = Math.floor(Math.random() * (9000 - 7000 + 1)) + 7000; // 7-9 seconds
             currentTimeout = setTimeout(checkAndSendMessage, randomDelay);
         } catch (error) {
             console.error('Error fetching messages or sending message:', error);
@@ -147,7 +128,6 @@ client.on('ready', async () => {
         const newMaxCycles = parseInt(input.trim(), 10);
         if (!isNaN(newMaxCycles)) {
             console.log(`Updating maxCycles to ${newMaxCycles}.`);
-            console.log(isRunning);
             maxCycles = newMaxCycles;
             cycleCount = 0;
             messageIndex = 0;
@@ -156,13 +136,10 @@ client.on('ready', async () => {
                 checkAndSendMessage();
                 console.log('Bot restarted.');
             }
-        } else {
-            const lowerCaseInput = input.trim().toLowerCase();
-            if (terminationTexts.some(text => lowerCaseInput.includes(text.toLowerCase()))) {
-                console.log(`Input contains termination text. Stopping the bot.`);
-                isRunning = false;
-                handleBotCompletion();
-            }
+        } else if (terminationTexts.some(text => input.trim().toLowerCase().includes(text.toLowerCase()))) {
+            console.log(`Input contains termination text. Stopping the bot.`);
+            isRunning = false;
+            handleBotCompletion();
         }
     });
 
