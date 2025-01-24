@@ -21,7 +21,7 @@ client.on('ready', async () => {
 
     const channelId = process.env.CHANNEL_ID; // Take channel ID from .env file
     const channel = await client.channels.fetch(channelId);
-    const messagesToSend = ['hi', 'hello']; // Predefined list of messages
+    const messagesToSend = ['owo hunt', 'owo battle']; // Predefined list of messages
     const terminationTexts = [
         "stop","captcha",
         "real human",
