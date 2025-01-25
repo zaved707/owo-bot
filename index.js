@@ -14,6 +14,7 @@ let cycleCount = 0;
 let messageIndex = 0;
 let isRunning = true;
 let currentTimeout;
+let terminationMessageLoop=false;
 
 const channelId = process.env.CHANNEL_ID;
 const messagesToSend = ['owo hunt', 'owo battle'];
@@ -40,10 +41,11 @@ client.on('ready', async () => {
 
     async function handleBotTermination() {
         const endTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+        terminationMessageLoop=true;
 
         async function sendMessagesPeriodically() {
-            if (isRunning || Date.now() >= endTime) return;
-
+            if (!terminationMessageLoop || isRunning || Date.now() >= endTime) return;
+            console.log('termination messageloop',terminationMessageLoop);
             await sendMessageToUser(botTerminatedMessage);
             const randomDelay = Math.floor(Math.random() * (20000 - 10000 + 1)) + 10000; // 10-20 seconds
             setTimeout(sendMessagesPeriodically, randomDelay);
@@ -55,6 +57,7 @@ client.on('ready', async () => {
     async function handleBotCompletion() {
         await sendMessageToUser(botCompletedMessage);
         isRunning = false; // Change isRunning to false after the bot finishes
+        terminationMessageLoop=false;
     }
 
     function shuffleArray(array) {
@@ -131,13 +134,14 @@ client.on('ready', async () => {
             maxCycles = newMaxCycles;
             cycleCount = 0;
             messageIndex = 0;
+            channel.send("safety");
+            console.log('before2sec')
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log('after2sec')
+            console.log('safety message sent');
+            
             if (!isRunning) { //this will be true if the bot has been stopped via termination
                 isRunning = true;
-                channel.send("safety");
-                console.log('before2sec')
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                console.log('after2sec')
-                console.log('safety message sent');
                 console.log('Bot restarted.');
                 checkAndSendMessage();
             } 
